@@ -10,11 +10,13 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 GUILD = discord.Object(id=int(os.getenv("GUILD_ID")))
 
 intents = discord.Intents.default()
+intents.members = True
+
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
 
-@tree.command(name="ping", description="Teste si le bot répond", guild=GUILD)
+@tree.command(name="ping", description="Ping le bot pour lui parler", guild=GUILD)
 async def ping(interaction: discord.Interaction):
     await interaction.response.send_message("Hey ! On m'a appelé ? Pour plus d'aide n'hésites pas à employer la commande /help ! ^^")
 
@@ -66,6 +68,13 @@ async def help_command(Interaction : discord.Interaction):
 async def on_ready():
     await tree.sync(guild=GUILD)
     print(f"Connecté en tant que {client.user}")
+
+@client.event
+async def on_member_join(member):
+    channel= member.guild.system_channel
+    if channel is None:
+        return
+    await channel.send(f"Salut {member.mention} ! Bienvenue dans {member.guild.name}. En espérant que le projet te plaise et que tu passeras un agréable séjour chez nous !")
 
 
 client.run(TOKEN)
