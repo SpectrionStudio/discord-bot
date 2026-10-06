@@ -51,8 +51,16 @@ async def userinfo(interaction : discord.Interaction, member: discord.Member | N
     if roles == "":
         roles = "Aucun rôle"
     embed.add_field(name="🎭 Rôles", value=roles)
-    
     await interaction.response.send_message(embed=embed)
+
+@tree.command(name="help", description="Toutes les commandes que je peux exécuter !", guild=GUILD)
+async def help_command(Interaction : discord.Interaction):
+    embed = discord.Embed(title="Commandes du bot discord", color=discord.Color(0x5865F2))
+
+    for commande in tree.get_commands(guild=GUILD):
+        embed.add_field(name=f"/{commande.name}", value=commande.description, inline=False)
+    await Interaction.response.send_message(embed=embed)
+
 
 @client.event
 async def on_ready():
