@@ -36,7 +36,9 @@ async def serveurinfo(interaction: discord.Interaction):
 
 @tree.command(name="userinfo",description="Information sur l'utilisateur recherché",guild=GUILD)
 @app_commands.describe(member="Le membre à inspecter")
-async def userinfo(interaction : discord.Interaction, member: discord.Member):
+async def userinfo(interaction : discord.Interaction, member: discord.Member | None = None):
+    if member is None:
+        member = interaction.user
     embed = discord.Embed(title=member.display_name, color=member.color)
     embed.set_thumbnail(url=member.display_avatar.url)
     embed.add_field(name="🆔 Identifiant", value=member.id)
