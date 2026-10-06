@@ -74,7 +74,17 @@ async def on_member_join(member):
     channel= member.guild.system_channel
     if channel is None:
         return
-    await channel.send(f"Salut {member.mention} ! Bienvenue dans {member.guild.name}. En espérant que le projet te plaise et que tu passeras un agréable séjour chez nous !")
 
+    embed = discord.Embed(
+        title=f"Bienvenue {member.display_name} !",
+        description="Tu es arrivé sur le projet The Release Of Riyo, un serveur discord suivant l'histoire de la création d'un projet Light Novel/Webtoon/Manga en cours de développement !",
+        color=discord.Color(0x5865F2),
+    )
+    embed.set_thumbnail(url=member.display_avatar.url)
+    embed.set_footer(text=f"Tu es le membre n°{member.guild.member_count}")
 
+    file = discord.File("images/bienvenue.png", filename="bienvenue.png")
+    embed.set_image(url="attachment://bienvenue.png")
+
+    await channel.send(content=member.mention, embed=embed, file=file)
 client.run(TOKEN)
