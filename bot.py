@@ -71,11 +71,14 @@ async def linktree(interaction: discord.Interaction):
         description="Tous les liens du projet au même endroit !",
         color= discord.Color(0x5865F2),
     )
+    if interaction.guild.icon:
+      embed.set_thumbnail(url=interaction.guild.icon.url)
     embed.add_field(name="📸 Instagram", value="[Notre actualité sur Instagram !](https://www.instagram.com/spectrion_studio)", inline=False)
     embed.add_field(name="🎶 TikTok", value="[Suivez-nous sur Tiktok !](https://www.tiktok.com/@spectrionstudio)", inline=False)
     embed.add_field(name="▶️ YouTube", value="[Notre chaîne Youtube](https://www.youtube.com/@SpectrionStudio)", inline=False)
     embed.add_field(name="🐦 X", value="[Voici notre compte X](https://x.com/spectrionstudio)", inline=False)
     embed.add_field(name="📞 WhatsApp", value="[Besoin de nous contacter ?](https://api.whatsapp.com/send/?phone=33612541310&text&type=phone_number&app_absent=0)", inline=False)
+    
     await interaction.response.send_message(embed=embed)
 
 @client.event
