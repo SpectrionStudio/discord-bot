@@ -81,6 +81,21 @@ async def linktree(interaction: discord.Interaction):
     
     await interaction.response.send_message(embed=embed)
 
+@tree.command(name="clear", description="Permet de supprimer un nombre déterminé de messages", guild=GUILD)
+@app_commands.describe(nombre="Nombre de messages à supprimer (1 à 100)")
+@app_commands.checks.has_permissions(manage_messages=True)
+async def clear(interaction: discord.Interaction, nombre: app_commands.Range[int, 1, 100]) :
+    await interaction.response.defer(ephemeral=True)
+    supprimes = await interaction.channel.purge(limit=nombre)
+    await interaction.followup.send(f"J'ai bien supprimé les {len (supprimes)} messages comme vous me l'avez demandé pour ce salon !" ,ephemeral=True)
+
+@clear.error
+async def clear_error(interaction: discord.Interaction, error):
+    if isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message("Vous ne possédez pas les permissions pour employer cette commande, désolé !", ephemeral=True)
+    else:
+        print(error)
+
 @client.event
 async def on_ready():
     await tree.sync(guild=GUILD)
