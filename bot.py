@@ -34,6 +34,24 @@ async def serveurinfo(interaction: discord.Interaction):
     embed.set_footer(text=f"Demandé par {interaction.user.display_name}")
     await interaction.response.send_message(embed=embed)
 
+@tree.command(name="userinfo",description="Information sur l'utilisateur recherché",guild=GUILD)
+@app_commands.describe(member="Le membre à inspecter")
+async def userinfo(interaction : discord.Interaction, member: discord.Member):
+    embed = discord.Embed(title=member.display_name, color=member.color)
+    embed.set_thumbnail(url=member.display_avatar.url)
+    embed.add_field(name="🆔 Identifiant", value=member.id)
+    embed.add_field(name="📅 Compte créé le", value=discord.utils.format_dt(member.created_at, "D"))
+    if member.joined_at:
+        embed.add_field(name="📥 A rejoint le", value=discord.utils.format_dt(member.joined_at, "D"))
+    roles = ""
+    for role in member.roles[1:]:
+        roles = roles + role.mention + " "
+    if roles == "":
+        roles = "Aucun rôle"
+    embed.add_field(name="🎭 Rôles", value=roles)
+    
+    await interaction.response.send_message(embed=embed)
+
 @client.event
 async def on_ready():
     await tree.sync(guild=GUILD)
