@@ -1,8 +1,15 @@
+# Spectrion Studio
+
+Le bot sert pour différentes fonctionnalités que ce soit en communautaire ou bien sur la modération.
+Il va permettre de pouvoir se reposer sur lui et non sur des bots d'une provenance inconnue ou bien sur les bots utilisés par la grande majorité des owners discord.
+
+Le projet vise à terme à proposer des outils de modération, dont une protection contre les raids.
+
 ## Prérequis
 
-Python 3.10 ou plus récent
-Une application Discord créée sur le [portail développeurs](https://discord.com/developers/applications), avec son bot et son token
-Le Server Members Intent activé (menu Bot → Privileged Gateway Intents), nécessaire pour le message de bienvenue
+- Python 3.10 ou plus récent
+- Une application Discord créée sur le [portail développeurs](https://discord.com/developers/applications), avec son bot et son token
+- Le Server Members Intent activé (menu Bot → Privileged Gateway Intents), nécessaire pour le message de bienvenue
 
 ## Installation
 
@@ -35,33 +42,28 @@ Il doit être invité avec les scopes `bot` et `applications.commands`.
 
 Le message de bienvenue est envoyé dans le **salon des messages système** du serveur (Paramètres du serveur → Général). Sans salon défini, le bot n'envoie rien.
 
-# Spectrion Studio
-
-Le bot sert pour différentes fonctionnalités que ce soit en communautaire ou bien sur la modération.
-Il va permettre de pouvoir se reposer sur lui et non sur des bots d'une provenance inconnue ou bien sur les bots utilisés par la grande majorité des owners discord.
-
-Le projet vise à terme à proposer des outils de modération, dont une protection contre les raids. 
+ 
 
 ## Fonctionnalités
 
 Pour le moment j'ai pu travailler quelques commandes dont : 
 
-/ping
+- /ping
 Ping le bot pour lui parler
 
-/serveurinfo
+- /serveurinfo
 Informations sur le serveur
 
-/userinfo
+- /userinfo
 Information sur l'utilisateur recherché
 
-/help
+- /help
 Toutes les commandes que je peux exécuter !
 
-/linktree
+- /linktree
 Obtenez tous nos réseaux grâce à cette commande !
 
-/clear
+- /clear
 Permet de supprimer un nombre déterminé de messages
 
 Mais aussi des messages de bienvenue pour les nouveaux membres.
