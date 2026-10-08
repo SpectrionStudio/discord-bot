@@ -90,3 +90,74 @@ Mais aussi des termes que j'ai pu retravailler comme les f string qui ne m'avaie
 
 
   > L'illustration de bienvenue n'est pas incluse dans le dépôt : ajoutez votre propre image dans `images/bienvenue.png`.
+
+
+## Améliorations
+
+Depuis la première version envoyée, j'ai ajouté de la modération et un assistant IA qui tourne en local.
+
+### Modération : `/kick`
+
+La commande `/kick` expulse un membre, avec une raison facultative. Avant de kick la personne, elle vérifie plusieurs choses :
+
+- la personne qui lance la commande a la permission « Expulser des membres » ;
+- le bot a lui aussi cette permission ;
+- on ne peut pas s'expulser soi-même évidemment ;
+- on ne peut pas expulser quelqu'un dont le rôle est supérieur ou égal au sien ;
+- le bot ne peut pas expulser quelqu'un dont le rôle est au-dessus du sien.
+
+Chaque refus renvoie un message clair, visible uniquement par la personne qui a lancé la commande. Avant l'expulsion, le bot envoie un message privé au membre avec la raison. Si ses messages privés sont fermés, l'expulsion a quand même lieu et le modérateur est prévenu que le membre n'a pas pu l'être.
+
+![Commande /kick] ![kick image](image.png)
+
+### Assistant IA local : `/ask` et `/lore`
+
+Deux commandes qui discutent avec un modèle de langage qui tourne **sur mon propre PC**, grâce à [Ollama](https://ollama.com). Aucune donnée n'est envoyée à un service en ligne.
+
+- `/ask` : un assistant généraliste, qui se présente comme Spectrion Studio Bot, tutoie, répond en français et avoue quand il ne sait pas.
+- `/lore` : un guide de l'univers de *The Release Of Riyo: Second Life*. Il répond uniquement à partir d'un fichier de notes (`lore.txt`) et dit clairement quand une information n'y figure pas, au lieu de l'inventer.
+
+![Commande /ask](![commande ask](image-1.png))
+![Commande /lore](![commande lore](image-2.png))
+
+#### Comment ça marche
+
+```
+Discord  →  bot (Python)  →  Ollama (modèle gemma4:12b)  →  bot  →  Discord
+```
+
+Le bot ne contient pas d'IA : il envoie la question au modèle et récupère sa réponse. Les deux commandes utilisent le **même modèle** et la **même fonction** (`ia.py`). Seul le *prompt système* change :
+
+- pour `/ask`, il décrit la personnalité du bot ;
+- pour `/lore`, il y ajoute le contenu de `lore.txt` avec la consigne de ne répondre qu'à partir de ces notes.
+
+#### Protections
+
+- **Réponse différée** (`defer`) : Discord impose une réponse en 3 secondes, or le modèle peut en demander davantage.
+- **Délai de 30 secondes par utilisateur** (cooldown), pour qu'une seule personne ne puisse pas saturer la carte graphique.
+- **Question limitée à 500 caractères**.
+- **Réponse limitée en longueur** (`num_predict`), puis découpée en morceaux de 2000 caractères maximum si besoin, car c'est la limite d'un message Discord.
+- **Mentions désactivées** dans les réponses, pour que le modèle ne puisse pas écrire `@everyone`.
+- **Gestion des pannes** : si Ollama est éteint, le bot répond par un message d'excuse au lieu de rester bloqué sur « réfléchit… ».
+
+#### Prérequis supplémentaires
+
+1. Installer [Ollama](https://ollama.com).
+2. Télécharger le modèle : `ollama pull gemma4:12b`
+3. Créer à côté de `bot.py` un fichier `lore.txt` avec les notes sur l'univers. Il n'est pas inclus dans le dépôt : il est dans le `.gitignore`.
+
+#### Limites
+
+- Le bot ne répond que si mon PC et Ollama sont allumés.
+- Le modèle est un modèle ouvert existant (Gemma, de Google) : je ne l'ai pas entraîné. Mon travail porte sur le prompt, la base de connaissances et l'intégration à Discord.
+- Un modèle peut se tromper ou interpréter un texte : c'est pourquoi `/lore` est limité aux notes, mais il peut encore reformuler de façon inexacte.
+
+
+
+### Ce que ces ajouts m'ont appris
+
+- Gérer des permissions et la hiérarchie des rôles sur un serveur Discord.
+- Utiliser une API locale, le rôle d'un prompt système et le fait qu'un modèle n'a pas de mémoire : c'est à moi de lui renvoyer l'historique.
+- Déboguer un cas concret : certaines réponses étaient vides parce que le modèle « réfléchissait » et consommait toute la limite de mots avant de répondre. Afficher la réponse brute m'a permis de le voir et de le corriger.
+- Programmer en asynchrone (`async` / `await`) pour que le bot ne se bloque pas pendant que le modèle travaille.
+
