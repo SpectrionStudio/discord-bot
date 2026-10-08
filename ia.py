@@ -40,16 +40,12 @@ NOTES SUR L'UNIVERS :
 {LORE}"""
 
 
-async def demander(prompt_systeme, question):
-    """Envoie une question au modèle et renvoie sa réponse (texte)."""
+async def demander(prompt_systeme, historique):
+    messages = [{"role": "system", "content": prompt_systeme}] + historique
     reponse = await client_ollama.chat(
         model=MODELE,
-         messages=[
-            {"role": "system", "content": prompt_systeme},
-            {"role": "user", "content": question},
-        ],
+        messages=messages,
         options={"num_predict": 400},
         think=False,
     )
-   
     return reponse["message"]["content"]

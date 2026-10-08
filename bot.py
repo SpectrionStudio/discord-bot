@@ -139,6 +139,10 @@ async def kick_error(interaction: discord.Interaction, error):
         print(error)
 
     
+TAILLE_MEMOIRE = 10  # nombre de messages gardés (5 questions + 5 réponses)
+memoires = {}  # {identifiant de l'utilisateur: [messages]}
+ 
+ 
 def decouper(texte, taille=2000):
     """Coupe un texte en morceaux de 2000 caractères maximum (limite de Discord)."""
     morceaux = []
@@ -147,20 +151,39 @@ def decouper(texte, taille=2000):
     return morceaux
  
  
-async def repondre_ia(interaction, prompt_systeme, question):
-    """Envoie la question au modèle et renvoie la réponse dans Discord."""
+async def repondre_ia(interaction, prompt_systeme, question, memoire=None):
+    """Envoie la question au modèle et renvoie la réponse dans Discord.
+ 
+    Si `memoire` est une liste, la conversation y est enregistrée.
+    Sinon (memoire=None), chaque question est indépendante.
+    """
     await interaction.response.defer()
+ 
+    if memoire is None:
+        historique = []  # liste jetable : rien n'est retenu
+    else:
+        historique = memoire
+ 
+    historique.append({"role": "user", "content": question})
+ 
     try:
-        texte = await demander(prompt_systeme, question)
+        texte = await demander(prompt_systeme, historique)
     except Exception as erreur:
         print(erreur)
+        historique.pop()  # on retire la question restée sans réponse
         await interaction.followup.send(
-            "Je ne parviens pas à te répondre pour le moment... Essaies une prochaine fois !"
+            "Je n'arrive pas à joindre mon cerveau pour le moment 😅 Réessaie plus tard !"
         )
         return
  
     if texte.strip() == "":
-        texte = "Difficile de répondre à ça... 🤔"
+        print("Réponse vide du modèle")
+        historique.pop()
+        await interaction.followup.send("Je n'ai rien à répondre à ça pour le moment 🤔")
+        return
+ 
+    historique.append({"role": "assistant", "content": texte})
+    del historique[:-TAILLE_MEMOIRE]  # on ne garde que les derniers messages
  
     for morceau in decouper(texte):
         await interaction.followup.send(
@@ -169,9 +192,10 @@ async def repondre_ia(interaction, prompt_systeme, question):
  
  
 async def gerer_cooldown(interaction, error):
+    """Message commun pour les commandes IA quand on les utilise trop vite."""
     if isinstance(error, app_commands.CommandOnCooldown):
         await interaction.response.send_message(
-            f"Wow... WOW DOUCEMENT ! ⏳ Tu pourras me reposer une question dans {int(error.retry_after)} secondes.",
+            f"Doucement ! ⏳ Tu pourras me reposer une question dans {int(error.retry_after)} secondes.",
             ephemeral=True,
         )
     else:
@@ -182,7 +206,9 @@ async def gerer_cooldown(interaction, error):
 @app_commands.describe(question="Ta question")
 @app_commands.checks.cooldown(1, 30.0, key=lambda i: i.user.id)
 async def ask(interaction: discord.Interaction, question: app_commands.Range[str, 1, 500]):
-    await repondre_ia(interaction, PROMPT_ASSISTANT, question)
+    # setdefault : renvoie la liste de la personne, ou en crée une vide si c'est sa première question
+    memoire = memoires.setdefault(interaction.user.id, [])
+    await repondre_ia(interaction, PROMPT_ASSISTANT, question, memoire)
  
  
 @ask.error
@@ -190,7 +216,16 @@ async def ask_error(interaction: discord.Interaction, error):
     await gerer_cooldown(interaction, error)
  
  
-@tree.command(name="lore", description="Pose une question sur l'univers du roman The Release Of Riyo", guild=GUILD)
+@tree.command(name="reset", description="Efface la mémoire de notre conversation", guild=GUILD)
+async def reset(interaction: discord.Interaction):
+    # pop(cle, None) supprime l'entrée si elle existe, et ne plante pas sinon
+    memoires.pop(interaction.user.id, None)
+    await interaction.response.send_message(
+        "C'est fait, j'ai oublié notre conversation 🧹", ephemeral=True
+    )
+ 
+ 
+@tree.command(name="lore", description="Pose une question sur l'univers du roman", guild=GUILD)
 @app_commands.describe(question="Ta question sur l'univers")
 @app_commands.checks.cooldown(1, 30.0, key=lambda i: i.user.id)
 async def lore(interaction: discord.Interaction, question: app_commands.Range[str, 1, 500]):
@@ -199,6 +234,7 @@ async def lore(interaction: discord.Interaction, question: app_commands.Range[st
             "Les notes sur l'univers ne sont pas encore prêtes 📚", ephemeral=True
         )
         return
+    # pas de mémoire ici : chaque question sur le roman est indépendante
     await repondre_ia(interaction, PROMPT_ROMAN, question)
  
  
