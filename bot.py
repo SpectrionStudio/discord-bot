@@ -138,6 +138,45 @@ async def kick_error(interaction: discord.Interaction, error):
     else:
         print(error)
 
+@tree.command(name="ban", description="Bannir un membre du serveur", guild=GUILD)
+@app_commands.describe(member="Le membre à bannir", reason="La raison de son bannissement")
+@app_commands.checks.has_permissions(ban_members=True)
+@app_commands.checks.bot_has_permissions(ban_members=True)
+async def ban(interaction: discord.Interaction, member: discord.Member, reason: str = "Aucune raison fournie"):
+    if member == interaction.user:
+        await interaction.response.send_message("Vous ne pouvez pas vous auto-ban ! Désolé !", ephemeral=True)
+        return
+
+    if member.top_role >= interaction.user.top_role:
+        await interaction.response.send_message("Vous ne pouvez pas bannir une personne avec un plus haut rang que vous ! Désolé !", ephemeral=True)
+        return
+
+    if member.top_role >= interaction.guild.me.top_role:
+        await interaction.response.send_message("Je ne peux pas bannir cette personne ! Mon rôle est trop bas, désolé !", ephemeral=True)
+        return
+
+    dm_envoye = True
+    try:
+        await member.send(f"Vous avez été banni du serveur {interaction.guild.name} ! La raison pour laquelle vous avez été banni est : {reason}")   
+    except discord.Forbidden:
+        dm_envoye = False
+    
+    await member.ban(reason=reason)
+    
+    message = f"{member.display_name} a été banni avec succès par {interaction.user.mention} ! La raison est : {reason}"
+    if not dm_envoye:
+        message = message + "\n(Impossible de lui envoyer un message privé.)"
+    await interaction.response.send_message(message)
+
+@kick.error
+async def kick_error(interaction: discord.Interaction, error):
+    if isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message("Vous ne possédez pas les permissions pour employer cette commande, désolé !", ephemeral=True)
+    elif isinstance(error, app_commands.BotMissingPermissions):
+        await interaction.response.send_message("Je ne possède pas la permission d'expulser des membres sur ce serveur, désolé !", ephemeral=True)
+    else:
+        print(error)
+
     
 TAILLE_MEMOIRE = 10  # nombre de messages gardés (5 questions + 5 réponses)
 memoires = {}  # {identifiant de l'utilisateur: [messages]}
@@ -241,6 +280,9 @@ async def lore(interaction: discord.Interaction, question: app_commands.Range[st
 @lore.error
 async def lore_error(interaction: discord.Interaction, error):
     await gerer_cooldown(interaction, error)
+
+
+
 
 @client.event
 async def on_ready():
