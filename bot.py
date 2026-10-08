@@ -1,5 +1,6 @@
 import os
 import discord
+from ia import demander, PROMPT_ASSISTANT, PROMPT_ROMAN, LORE
 from discord import app_commands
 from dotenv import load_dotenv
 
@@ -138,7 +139,72 @@ async def kick_error(interaction: discord.Interaction, error):
         print(error)
 
     
-
+def decouper(texte, taille=2000):
+    """Coupe un texte en morceaux de 2000 caractères maximum (limite de Discord)."""
+    morceaux = []
+    for i in range(0, len(texte), taille):
+        morceaux.append(texte[i:i + taille])
+    return morceaux
+ 
+ 
+async def repondre_ia(interaction, prompt_systeme, question):
+    """Envoie la question au modèle et renvoie la réponse dans Discord."""
+    await interaction.response.defer()
+    try:
+        texte = await demander(prompt_systeme, question)
+    except Exception as erreur:
+        print(erreur)
+        await interaction.followup.send(
+            "Je ne parviens pas à te répondre pour le moment... Essaies une prochaine fois !"
+        )
+        return
+ 
+    if texte.strip() == "":
+        texte = "Difficile de répondre à ça... 🤔"
+ 
+    for morceau in decouper(texte):
+        await interaction.followup.send(
+            morceau, allowed_mentions=discord.AllowedMentions.none()
+        )
+ 
+ 
+async def gerer_cooldown(interaction, error):
+    if isinstance(error, app_commands.CommandOnCooldown):
+        await interaction.response.send_message(
+            f"Wow... WOW DOUCEMENT ! ⏳ Tu pourras me reposer une question dans {int(error.retry_after)} secondes.",
+            ephemeral=True,
+        )
+    else:
+        print(error)
+ 
+ 
+@tree.command(name="ask", description="Pose une question à l'assistant", guild=GUILD)
+@app_commands.describe(question="Ta question")
+@app_commands.checks.cooldown(1, 30.0, key=lambda i: i.user.id)
+async def ask(interaction: discord.Interaction, question: app_commands.Range[str, 1, 500]):
+    await repondre_ia(interaction, PROMPT_ASSISTANT, question)
+ 
+ 
+@ask.error
+async def ask_error(interaction: discord.Interaction, error):
+    await gerer_cooldown(interaction, error)
+ 
+ 
+@tree.command(name="lore", description="Pose une question sur l'univers du roman The Release Of Riyo", guild=GUILD)
+@app_commands.describe(question="Ta question sur l'univers")
+@app_commands.checks.cooldown(1, 30.0, key=lambda i: i.user.id)
+async def lore(interaction: discord.Interaction, question: app_commands.Range[str, 1, 500]):
+    if LORE == "":
+        await interaction.response.send_message(
+            "Les notes sur l'univers ne sont pas encore prêtes 📚", ephemeral=True
+        )
+        return
+    await repondre_ia(interaction, PROMPT_ROMAN, question)
+ 
+ 
+@lore.error
+async def lore_error(interaction: discord.Interaction, error):
+    await gerer_cooldown(interaction, error)
 
 @client.event
 async def on_ready():
