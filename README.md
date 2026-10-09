@@ -66,6 +66,7 @@ Obtenez tous nos réseaux grâce à cette commande !
 - /clear
 Permet de supprimer un nombre déterminé de messages
 
+
 Mais aussi des messages de bienvenue pour les nouveaux membres.
 
 ## Aperçu
@@ -105,6 +106,9 @@ Trois commandes de modération, réservées aux personnes qui ont la permission 
 | `/kick` | Expulse un membre | Expulser des membres |
 | `/ban` | Bannit un membre | Bannir des membres |
 | `/timeout` | Exclut temporairement un membre (de 1 minute à 28 jours) | Exclure temporairement des membres |
+| `/warn` | Avertit un membre (raison obligatoire), l'avertissement est enregistré | Exclure temporairement des membres |
+| `/warns` | Affiche l'historique d'avertissements d'un membre | Exclure temporairement des membres |
+| `/clearwarns` | Efface tous les avertissements d'un membre | Administrateur |
 
 Chaque commande accepte une raison facultative.
 
@@ -124,6 +128,11 @@ Chaque refus renvoie un message clair, visible uniquement par la personne concer
 
 Avant la sanction, le bot envoie un message privé à la personne avec la raison. Si ses messages privés sont fermés, la sanction est appliquée quand même et le modérateur est prévenu que la personne n'a pas pu l'être. Le message est envoyé **avant** l'action, car après un ban ou une expulsion le bot et la personne n'ont plus de serveur en commun.
 
+### Avertissements
+
+Les avertissements sont sauvegardés dans un fichier `warns.json`, créé automatiquement au premier `/warn`. Chaque entrée contient la raison, l'identifiant du modérateur et la date. Ils sont donc conservés quand le bot redémarre.
+
+Ce fichier contient des informations sur des membres : il est exclu du dépôt par le `.gitignore` et ne doit pas être publié.
 
 ### Permissions du bot
 
@@ -135,17 +144,17 @@ En plus de celles de la première version, le bot a besoin de : **Expulser des m
 - Gérer les cas d'échec : un message privé refusé ne doit pas empêcher la sanction.
 - Tester sur un compte secondaire avant d'utiliser une commande sur de vrais membres.
 
-![Commande /kick](image.png)
+![Commande /kick](/screenshots/image.png)
 
 ### Assistant IA local : `/ask` et `/lore`
 
 Deux commandes qui discutent avec un modèle de langage qui tourne **sur mon propre PC**, grâce à [Ollama](https://ollama.com). Aucune donnée n'est envoyée à un service en ligne.
 
-- `/ask` : un assistant généraliste, qui se présente comme Spectrion Studio Bot, tutoie, répond en français et avoue quand il ne sait pas.
+- `/ask` : un assistant généraliste, qui se présente comme Spectrion Studio Bot, tutoie, répond en français et avoue quand il ne sait pas. Retient les 10 derniers messages de chaque conversation, uniquement en mémoire vive : rien n'est écrit sur le disque, et `/reset` efface cette mémoire.
 - `/lore` : un guide de l'univers de *The Release Of Riyo: Second Life*. Il répond uniquement à partir d'un fichier de notes (`lore.txt`) et dit clairement quand une information n'y figure pas, au lieu de l'inventer.
 
-![Commande /ask](![commande ask](image-1.png))
-![Commande /lore](![commande lore](image-2.png))
+![Commande /ask](![commande ask](/screenshots/image-1.png))
+![Commande /lore](![commande lore](/screenshots/image-2.png))
 
 #### Comment ça marche
 
