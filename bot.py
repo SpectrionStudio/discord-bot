@@ -4,6 +4,8 @@ import datetime
 from ia import demander, PROMPT_ASSISTANT, PROMPT_ROMAN, LORE
 from discord import app_commands
 from dotenv import load_dotenv
+from stockage import charger_warns, sauvegarder_warns
+
 
 load_dotenv()
 print("DISCORD_TOKEN présent :", os.getenv("DISCORD_TOKEN") is not None)
@@ -169,12 +171,12 @@ async def ban(interaction: discord.Interaction, member: discord.Member, reason: 
         message = message + "\n(Impossible de lui envoyer un message privé.)"
     await interaction.response.send_message(message)
 
-@kick.error
-async def kick_error(interaction: discord.Interaction, error):
+@ban.error
+async def ban_error(interaction: discord.Interaction, error):
     if isinstance(error, app_commands.MissingPermissions):
         await interaction.response.send_message("Vous ne possédez pas les permissions pour employer cette commande, désolé !", ephemeral=True)
     elif isinstance(error, app_commands.BotMissingPermissions):
-        await interaction.response.send_message("Je ne possède pas la permission d'expulser des membres sur ce serveur, désolé !", ephemeral=True)
+        await interaction.response.send_message("Je ne possède pas la permission de bannir des membres sur ce serveur, désolé !", ephemeral=True)
     else:
         print(error)
 
@@ -209,12 +211,12 @@ async def timeout(interaction: discord.Interaction, member: discord.Member, dure
         message = message + "\n(Impossible de lui envoyer un message privé.)"
     await interaction.response.send_message(message)
 
-@kick.error
-async def kick_error(interaction: discord.Interaction, error):
+@timeout.error
+async def timeout_error(interaction: discord.Interaction, error):
     if isinstance(error, app_commands.MissingPermissions):
         await interaction.response.send_message("Vous ne possédez pas les permissions pour employer cette commande, désolé !", ephemeral=True)
     elif isinstance(error, app_commands.BotMissingPermissions):
-        await interaction.response.send_message("Je ne possède pas la permission d'expulser des membres sur ce serveur, désolé !", ephemeral=True)
+        await interaction.response.send_message("Je ne possède pas la permission de tiemout des membres sur ce serveur, désolé !", ephemeral=True)
     else:
         print(error)
 
@@ -322,6 +324,51 @@ async def lore(interaction: discord.Interaction, question: app_commands.Range[st
 async def lore_error(interaction: discord.Interaction, error):
     await gerer_cooldown(interaction, error)
 
+
+@tree.command(name="warn", description="Avertit un membre du serveur", guild=GUILD)
+@app_commands.describe(member="Le membre à avertir", reason="La raison de son avertissement")
+@app_commands.checks.has_permissions(moderate_members=True)
+async def warn(interaction: discord.Interaction, member: discord.Member, reason: str = "Aucune raison fournie"):
+    if member == interaction.user:
+        await interaction.response.send_message("Vous ne pouvez pas vous auto-warn ! Désolé !", ephemeral=True)
+        return
+
+    if member.top_role >= interaction.user.top_role:
+        await interaction.response.send_message("Vous ne pouvez pas warn une personne avec un plus haut rang que vous ! Désolé !", ephemeral=True)
+        return
+
+    if member.top_role >= interaction.guild.me.top_role:
+        await interaction.response.send_message("Je ne peux pas warn cette personne ! Mon rôle est trop bas, désolé !", ephemeral=True)
+        return
+
+    warns = charger_warns()
+    cle = str(member.id)
+    if cle not in warns:
+        warns[cle] = []
+    warns[cle].append({
+        "raison": reason,
+        "moderateur": str(interaction.user.id),
+        "date": datetime.datetime.now().strftime("%d/%m/%Y %H:%M"),
+    })
+    sauvegarder_warns(warns)
+    total = len(warns[cle])
+
+    dm_envoye = True
+    try:
+        await member.send(f"Vous avez reçu un avertissement sur le serveur {interaction.guild.name} (n°{total}). Raison : {reason}")
+    except discord.Forbidden:
+        dm_envoye = False
+
+    message = f"{member.mention} a reçu un avertissement de la part de {interaction.user.mention} ({total} au total). Raison : {reason}"
+    if not dm_envoye:
+        message = message + "\n(Impossible de lui envoyer un message privé.)"
+    await interaction.response.send_message(message)
+
+@warn.error
+async def warn_error(interaction: discord.Interaction, error):
+    if isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message("Vous ne possédez pas les permissions pour employer cette commande, désolé !", ephemeral=True)
+    
 
 
 
