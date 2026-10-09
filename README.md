@@ -124,8 +124,8 @@ Chaque refus renvoie un message clair, visible uniquement par la personne concer
 
 Avant la sanction, le bot envoie un message privé à la personne avec la raison. Si ses messages privés sont fermés, la sanction est appliquée quand même et le modérateur est prévenu que la personne n'a pas pu l'être. Le message est envoyé **avant** l'action, car après un ban ou une expulsion le bot et la personne n'ont plus de serveur en commun.
 
-![Commande /ban](![ban](image-3.png))
-![Commande /timeout](![timeout](image-4.png))
+![Commande /ban](![ban](file:///C:/Users/ender/Pictures/Screenshots/Capture%20d'%C3%A9cran%202026-10-09%20022229.png))
+![Commande /timeout](![timeout](file:///C:/Users/ender/Pictures/Screenshots/Capture%20d'%C3%A9cran%202026-10-09%20022250.png))
 
 ### Permissions du bot
 
