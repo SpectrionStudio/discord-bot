@@ -369,8 +369,47 @@ async def warn_error(interaction: discord.Interaction, error):
     if isinstance(error, app_commands.MissingPermissions):
         await interaction.response.send_message("Vous ne possédez pas les permissions pour employer cette commande, désolé !", ephemeral=True)
     
+@tree.command(name="warns", description="Voir les avertissements d'un membre", guild=GUILD)
+@app_commands.describe(member="Le membre dont on veut voir les avertissements")
+@app_commands.checks.has_permissions(moderate_members=True)
+async def warns_cmd(interaction: discord.Interaction, member: discord.Member):
+    warns = charger_warns()
+    liste = warns.get(str(member.id), [])
 
+    if len(liste) == 0:
+        await interaction.response.send_message(f"{member.display_name} n'a aucun avertissement ✅")
+        return
 
+    texte = ""
+    for numero, avertissement in enumerate(liste, start=1):
+        texte = texte + f"**{numero}.** {avertissement['date']} : {avertissement['raison']} (par <@{avertissement['moderateur']}>)\n"
+
+    embed = discord.Embed(title=f"Avertissements de {member.display_name}", description=texte, color=discord.Color.orange())
+    embed.set_footer(text=f"{len(liste)} avertissement(s) au total")
+    await interaction.response.send_message(embed=embed)
+
+@tree.command(name="clearwarns", description="Efface tous les avertissements d'un membre", guild=GUILD)
+@app_commands.describe(member="Le membre dont on efface les avertissements")
+@app_commands.checks.has_permissions(administrator=True)
+async def clearwarns(interaction: discord.Interaction, member: discord.Member):
+    warns = charger_warns()
+    cle = str(member.id)
+    nombre = len(warns.get(cle, []))
+
+    if nombre == 0:
+        await interaction.response.send_message(f"{member.display_name} n'a aucun avertissement à effacer.", ephemeral=True)
+        return
+
+    warns.pop(cle, None)
+    sauvegarder_warns(warns)
+
+    await interaction.response.send_message(f"{nombre} avertissement(s) de {member.mention} effacé(s) par {interaction.user.mention}.")
+
+@clearwarns.error
+async def clearwarns_error(interaction, error) :
+    if isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message("Vous ne possédez pas les permissions pour employer cette commande, désolé !", ephemeral=True)
+    else: print(error)
 
 @client.event
 async def on_ready():
