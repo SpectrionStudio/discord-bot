@@ -96,19 +96,48 @@ Mais aussi des termes que j'ai pu retravailler comme les f string qui ne m'avaie
 
 Depuis la première version envoyée, j'ai ajouté de la modération et un assistant IA qui tourne en local.
 
-### Modération : `/kick`
+## Modération
 
-La commande `/kick` expulse un membre, avec une raison facultative. Avant de kick la personne, elle vérifie plusieurs choses :
+Trois commandes de modération, réservées aux personnes qui ont la permission correspondante sur le serveur :
 
-- la personne qui lance la commande a la permission « Expulser des membres » ;
-- le bot a lui aussi cette permission ;
-- on ne peut pas s'expulser soi-même évidemment ;
-- on ne peut pas expulser quelqu'un dont le rôle est supérieur ou égal au sien ;
-- le bot ne peut pas expulser quelqu'un dont le rôle est au-dessus du sien.
+| Commande | Action | Permission requise |
+|---|---|---|
+| `/kick` | Expulse un membre | Expulser des membres |
+| `/ban` | Bannit un membre | Bannir des membres |
+| `/timeout` | Exclut temporairement un membre (de 1 minute à 28 jours) | Exclure temporairement des membres |
 
-Chaque refus renvoie un message clair, visible uniquement par la personne qui a lancé la commande. Avant l'expulsion, le bot envoie un message privé au membre avec la raison. Si ses messages privés sont fermés, l'expulsion a quand même lieu et le modérateur est prévenu que le membre n'a pas pu l'être.
+Chaque commande accepte une raison facultative.
 
-![Commande /kick] ![kick image](image.png)
+### Sécurité des commandes
+
+Avant d'agir, le bot vérifie :
+
+- que la personne qui lance la commande a la permission requise ;
+- que le bot a lui aussi cette permission ;
+- qu'on ne vise pas soi-même ;
+- que la cible n'a pas un rôle supérieur ou égal à celui du modérateur ;
+- que la cible n'a pas un rôle supérieur à celui du bot.
+
+Chaque refus renvoie un message clair, visible uniquement par la personne concernée.
+
+### Message privé
+
+Avant la sanction, le bot envoie un message privé à la personne avec la raison. Si ses messages privés sont fermés, la sanction est appliquée quand même et le modérateur est prévenu que la personne n'a pas pu l'être. Le message est envoyé **avant** l'action, car après un ban ou une expulsion le bot et la personne n'ont plus de serveur en commun.
+
+![Commande /ban](![ban](image-3.png))
+![Commande /timeout](![timeout](image-4.png))
+
+### Permissions du bot
+
+En plus de celles de la première version, le bot a besoin de : **Expulser des membres**, **Bannir des membres** et **Exclure temporairement des membres**. Son rôle doit être placé **au-dessus** de ceux des membres qu'il peut sanctionner.
+
+### Ce que j'ai appris
+
+- Les permissions Discord et la hiérarchie des rôles.
+- Gérer les cas d'échec : un message privé refusé ne doit pas empêcher la sanction.
+- Tester sur un compte secondaire avant d'utiliser une commande sur de vrais membres.
+
+![Commande /kick](image.png)
 
 ### Assistant IA local : `/ask` et `/lore`
 
