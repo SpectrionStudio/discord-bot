@@ -153,8 +153,8 @@ Deux commandes qui discutent avec un modèle de langage qui tourne **sur mon pro
 - `/ask` : un assistant généraliste, qui se présente comme Spectrion Studio Bot, tutoie, répond en français et avoue quand il ne sait pas. Retient les 10 derniers messages de chaque conversation, uniquement en mémoire vive : rien n'est écrit sur le disque, et `/reset` efface cette mémoire.
 - `/lore` : un guide de l'univers de *The Release Of Riyo: Second Life*. Il répond uniquement à partir d'un fichier de notes (`lore.txt`) et dit clairement quand une information n'y figure pas, au lieu de l'inventer.
 
-![Commande /ask](![commande ask](/screenshots/image-1.png))
-![Commande /lore](![commande lore](/screenshots/image-2.png))
+![commande ask](/screenshots/image-1.png)
+![commande lore](/screenshots/image-2.png)
 
 #### Comment ça marche
 
