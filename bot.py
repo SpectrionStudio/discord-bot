@@ -1,5 +1,6 @@
 import os
 import discord
+import datetime
 from ia import demander, PROMPT_ASSISTANT, PROMPT_ROMAN, LORE
 from discord import app_commands
 from dotenv import load_dotenv
@@ -164,6 +165,46 @@ async def ban(interaction: discord.Interaction, member: discord.Member, reason: 
     await member.ban(reason=reason)
     
     message = f"{member.display_name} a été banni avec succès par {interaction.user.mention} ! La raison est : {reason}"
+    if not dm_envoye:
+        message = message + "\n(Impossible de lui envoyer un message privé.)"
+    await interaction.response.send_message(message)
+
+@kick.error
+async def kick_error(interaction: discord.Interaction, error):
+    if isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message("Vous ne possédez pas les permissions pour employer cette commande, désolé !", ephemeral=True)
+    elif isinstance(error, app_commands.BotMissingPermissions):
+        await interaction.response.send_message("Je ne possède pas la permission d'expulser des membres sur ce serveur, désolé !", ephemeral=True)
+    else:
+        print(error)
+
+
+@tree.command(name="timeout", description="Limite temporairement l'accès d'un utilisateur", guild=GUILD)
+@app_commands.describe(member="Le membre à Timeout", duree="La durée du Timeout", reason="La raison de son Timeout")
+@app_commands.checks.has_permissions(moderate_members=True)
+@app_commands.checks.bot_has_permissions(moderate_members=True)
+async def timeout(interaction: discord.Interaction, member: discord.Member, duree: app_commands.Range[int, 1, 40320], reason: str = "Aucune raison fournie"):
+    if member == interaction.user:
+        await interaction.response.send_message("Vous ne pouvez pas vous auto-Timeout ! Désolé !", ephemeral=True)
+        return
+
+    if member.top_role >= interaction.user.top_role:
+        await interaction.response.send_message("Vous ne pouvez pas Timeout une personne avec un plus haut rang que vous ! Désolé !", ephemeral=True)
+        return
+
+    if member.top_role >= interaction.guild.me.top_role:
+        await interaction.response.send_message("Je ne peux pas mettre en sourdine cette personne ! Mon rôle est trop bas, désolé !", ephemeral=True)
+        return
+
+    dm_envoye = True
+    try:
+        await member.send(f"Vous avez été mis en sourdine sur le serveur {interaction.guild.name} ! La raison pour laquelle vous avez été mis en sourdine est : {reason}")   
+    except discord.Forbidden:
+        dm_envoye = False
+    
+    await member.timeout(datetime.timedelta(minutes=duree), reason=reason)
+    
+    message = f"{member.display_name} a été mis en sourdine avec succès par {interaction.user.mention} ! La raison est : {reason} et la durée du Timeout sera de {duree} minutes !"
     if not dm_envoye:
         message = message + "\n(Impossible de lui envoyer un message privé.)"
     await interaction.response.send_message(message)
